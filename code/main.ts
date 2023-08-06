@@ -1,3 +1,9 @@
+// EXPLORATION(): I feel like I want to keep an optionaly nice aspect ratio for non required items.
+// Because if we set the height too high what I call spagheti view of the item. Meaning the item is
+// very compressed and the experience is weird.
+
+// TODO(): La vie est belle.
+
 let m3_carousel = document.getElementById("m3_carousel");
 let m3_carousel_items = document.getElementsByClassName("m3_carousel_item");
 
@@ -54,4 +60,27 @@ m3_carousel_items[total_items_per_view - 2].style.width = "120px";
 m3_carousel_items[total_items_per_view - 2].style.backgroundColor = "red";
 
 
+let is_down = false;
+m3_carousel.addEventListener("mousedown", (e) => {
+    is_down = true;
+});
 
+m3_carousel.addEventListener("mouseup", (e) => {
+    is_down = false;
+});
+
+
+let translation_x = 0;
+m3_carousel.addEventListener("mousemove", (e) => {
+    console.log(`e.movementX:${e.movementX}`);
+    if (is_down) {
+        translation_x = translation_x + e.movementX;
+        for (let index = 0;
+                 index < m3_carousel_items.length;
+               ++index) {
+            console.log(`translation_x:${translation_x}`);
+            m3_carousel_items[index].style.transform = `translate3d(${translation_x}px, 0, 0)`;
+        }
+    } else {
+    }
+});
