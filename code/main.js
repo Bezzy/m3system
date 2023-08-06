@@ -45,15 +45,71 @@ m3_carousel.addEventListener("mousedown", function(e) {
 m3_carousel.addEventListener("mouseup", function(e) {
     is_down = false;
 });
-var translation_x = 0;
+var rel_translation_x = 0;
+var abs_translation_x = 0;
+var previous_offset = 0;
+var offset_left_x = 0;
+var small_carousel_item_width = 40;
+var scaling_rel_x = 1;
+var scaling_abs_x = 1;
+var scaling_px = 0;
+var first_item_can_move = false;
+var translate = 0;
 m3_carousel.addEventListener("mousemove", function(e) {
-    console.log("e.movementX:".concat(e.movementX));
+    // console.log(`e.movementX:${e.movementX}`);
     if (is_down) {
-        translation_x = translation_x + e.movementX;
-        for(var index = 0; index < m3_carousel_items.length; ++index){
-            console.log("translation_x:".concat(translation_x));
-            m3_carousel_items[index].style.transform = "translate3d(".concat(translation_x, "px, 0, 0)");
+        // TODO(): Since many viariables depends on e.movementX I strongly suspect we can simplify the code a lot.
+        abs_translation_x += e.movementX;
+        rel_translation_x += e.movementX;
+        scaling_px += e.movementX;
+        scaling_rel_x = scaling_px / m3_carousel_item_width;
+        scaling_abs_x += scaling_rel_x;
+        var remaining_px;
+        var scaling_to_small_item_px;
+        var scaling_to_small_item;
+        if (Math.abs(scaling_px) >= m3_carousel_item_width - small_carousel_item_width) {
+            // TODO(): Make transition from remaining the remaining_px after swap smooth.
+            scaling_to_small_item = 40 / m3_carousel_item_width;
+            first_item_can_move = true;
         }
-    } else {}
+        if (abs_translation_x >= 0) {
+            offset_left_x = Math.floor(rel_translation_x / small_carousel_item_width);
+        } else if (rel_translation_x <= 0) {
+            offset_left_x = Math.ceil(rel_translation_x / small_carousel_item_width);
+        }
+        console.log("offset_left_x:".concat(offset_left_x));
+        if (offset_left_x == previous_offset) {
+            offset_left_x = 0;
+        } else {
+            // TODO(): We want to recanolize the origin.
+            previous_offset = offset_left_x;
+            rel_translation_x = abs_translation_x % small_carousel_item_width;
+            console.log("rel_translation_x:".concat(rel_translation_x));
+        }
+        console.log("abs_translation_x:".concat(abs_translation_x));
+        for(var index = 0; index < m3_carousel_items.length; ++index){
+            var current_item = m3_carousel_items[index];
+            if (index == 0) {
+                current_item.style.transformOrigin = "bottom left";
+                if (!first_item_can_move) {
+                    current_item.style.transform = "translate3d(".concat(0, "px, 0, 0) scale3d(").concat(1 + scaling_rel_x, ", 1, 1)");
+                } else {
+                    // current_item.style.transformOrigin = `center`;
+                    // current_item.style.transform = `translate3d(${abs_translation_x}px, 0, 0)`;
+                    translate = abs_translation_x + (m3_carousel_item_width - small_carousel_item_width);
+                    current_item.style.transform = "translate3d(".concat(translate, "px, 0, 0) scale3d(").concat(scaling_to_small_item, ", 1, 1)");
+                }
+            } else {
+                current_item.style.transform = "translate3d(".concat(abs_translation_x, "px, 0, 0)");
+            }
+        }
+        for(var index1 = 0; index1 < m3_carousel_items.length; ++index1){
+            var current_item1 = m3_carousel_items[index1];
+            var pos = Number(current_item1.getAttribute("pos"));
+            pos += offset_left_x;
+            current_item1.setAttribute("pos", pos.toString());
+            current_item1.innerHTML = "".concat(current_item1.getAttribute("pos"));
+        }
+    }
 });
 

@@ -3,12 +3,14 @@
 }
 
 #m3_carousel {
+    margin: 0 auto 0 auto;
     display: flex;
     gap: 8px;
     width: 1280px;
     padding: 8px 16px 8px 16px;
-    background-color: rgb(255, 255, 0);
+    background-color: #141218;
     flex-wrap: nowrap;
+    border-radius: 10px;
 }
 
 .m3_carousel_item {

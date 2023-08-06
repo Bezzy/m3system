@@ -70,17 +70,84 @@ m3_carousel.addEventListener("mouseup", (e) => {
 });
 
 
-let translation_x = 0;
+let rel_translation_x = 0;
+let abs_translation_x = 0;
+let previous_offset = 0;
+let offset_left_x = 0;
+let small_carousel_item_width = 40;
+
+let scaling_rel_x = 1;
+let scaling_abs_x = 1;
+let scaling_px = 0;
+let first_item_can_move = false;
+
+let translate = 0;
+
 m3_carousel.addEventListener("mousemove", (e) => {
-    console.log(`e.movementX:${e.movementX}`);
+    // console.log(`e.movementX:${e.movementX}`);
     if (is_down) {
-        translation_x = translation_x + e.movementX;
+        // TODO(): Since many viariables depends on e.movementX I strongly suspect we can simplify the code a lot.
+        abs_translation_x += e.movementX;
+        rel_translation_x += e.movementX;
+        scaling_px += e.movementX;
+
+        scaling_rel_x =  scaling_px / m3_carousel_item_width;
+        scaling_abs_x += scaling_rel_x;
+
+        let remaining_px;
+        let scaling_to_small_item_px;
+        let scaling_to_small_item;
+        
+        if (Math.abs(scaling_px) >= (m3_carousel_item_width - small_carousel_item_width)) {   
+            // TODO(): Make transition from remaining the remaining_px after swap smooth.
+            scaling_to_small_item = 40 / m3_carousel_item_width;
+            first_item_can_move = true;
+        }
+
+        if (abs_translation_x >= 0) {
+            offset_left_x = Math.floor(rel_translation_x/(small_carousel_item_width));
+        } else if (rel_translation_x <= 0) {
+            offset_left_x = Math.ceil(rel_translation_x/(small_carousel_item_width));
+        }
+        console.log(`offset_left_x:${offset_left_x}`);
+        if (offset_left_x == previous_offset) {
+            offset_left_x = 0;
+        } else {
+            // TODO(): We want to recanolize the origin.
+            previous_offset = offset_left_x;
+            rel_translation_x = abs_translation_x % small_carousel_item_width;
+            console.log(`rel_translation_x:${rel_translation_x}`);
+        }
+        console.log(`abs_translation_x:${abs_translation_x}`);
         for (let index = 0;
                  index < m3_carousel_items.length;
                ++index) {
-            console.log(`translation_x:${translation_x}`);
-            m3_carousel_items[index].style.transform = `translate3d(${translation_x}px, 0, 0)`;
+            let current_item = m3_carousel_items[index];
+
+            if (index == 0) {
+                current_item.style.transformOrigin = `bottom left`;
+                if (!first_item_can_move) {
+                    current_item.style.transform = `translate3d(${0}px, 0, 0) scale3d(${1 + scaling_rel_x}, 1, 1)`;
+                } else {
+                    // current_item.style.transformOrigin = `center`;
+                    // current_item.style.transform = `translate3d(${abs_translation_x}px, 0, 0)`;
+                    translate = abs_translation_x + (m3_carousel_item_width - small_carousel_item_width);
+                    current_item.style.transform = `translate3d(${translate}px, 0, 0) scale3d(${scaling_to_small_item}, 1, 1)`;
+                }
+            } else {
+                current_item.style.transform = `translate3d(${abs_translation_x}px, 0, 0)`;            
+            }
+            
         }
-    } else {
+        for (let index = 0;
+            index < m3_carousel_items.length;
+          ++index) {
+                let current_item = m3_carousel_items[index];
+                let pos = Number(current_item.getAttribute("pos"));
+                pos += offset_left_x;
+                current_item.setAttribute("pos", pos.toString());
+                current_item.innerHTML = `${current_item.getAttribute("pos")}`;
+        }
     }
+    
 });
