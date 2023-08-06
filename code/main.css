@@ -1,0 +1,18 @@
+* {
+    box-sizing: border-box;
+}
+
+#m3_carousel {
+    display: flex;
+    gap: 8px;
+    max-width: 600px;
+    padding: 8px 16px 8px 16px;
+    background-color: rgb(255, 255, 0);
+    flex-wrap: wrap;
+}
+
+.m3_carousel_item {
+    width: 184px;
+    height: 205px;
+    background-color: aquamarine;
+}
