@@ -18,3 +18,11 @@
     height: 205px;
     background-color: aquamarine;
 }
+
+.m3_carousel_item_debug {
+    position: absolute;
+    width: 169.328px;
+    height: 205px;
+    background-color: rgb(255, 255, 255);
+    border: 3px dashed red;
+}

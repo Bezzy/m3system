@@ -83,9 +83,40 @@ let first_item_can_move = false;
 
 let translate = 0;
 
+let first_item_abs_position_x = m3_carousel_items[0].getBoundingClientRect().left + 16;
+
+let carousel_padding_left = 16;
+let absolute_origin_x = m3_carousel.getBoundingClientRect().left + carousel_padding_left;
+
+let first_item_position = m3_carousel_items[0];
+let first_item_position_index = 0;
+
 m3_carousel.addEventListener("mousemove", (e) => {
     // console.log(`e.movementX:${e.movementX}`);
     if (is_down) {
+        // Recanonize first carousel's item.
+        for (let index = 0;
+            index < m3_carousel_items.length;
+        ++index) {
+            let current_item = m3_carousel_items[index];
+                let current_item_abs_x = current_item.getBoundingClientRect().left;
+                if ((current_item_abs_x >= absolute_origin_x - 40) && (current_item_abs_x <= absolute_origin_x)) {
+                    first_item_position = current_item;
+                    first_item_position_index = index;
+                }
+        }
+
+        let position_index = first_item_position_index;
+        for (let index = 0;
+            index < m3_carousel_items.length;
+        ++index) {
+            let current_item = m3_carousel_items[index];
+            current_item.setAttribute("pos", `${1 - position_index}`);
+            current_item.innerHTML = `${1 - position_index}`;
+            console.log("position_index:" + position_index);
+            --position_index;
+        }
+        
         // TODO(): Since many viariables depends on e.movementX I strongly suspect we can simplify the code a lot.
         abs_translation_x += e.movementX;
         rel_translation_x += e.movementX;
@@ -103,22 +134,7 @@ m3_carousel.addEventListener("mousemove", (e) => {
             scaling_to_small_item = 40 / m3_carousel_item_width;
             first_item_can_move = true;
         }
-
-        if (abs_translation_x >= 0) {
-            offset_left_x = Math.floor(rel_translation_x/(small_carousel_item_width));
-        } else if (rel_translation_x <= 0) {
-            offset_left_x = Math.ceil(rel_translation_x/(small_carousel_item_width));
-        }
-        console.log(`offset_left_x:${offset_left_x}`);
-        if (offset_left_x == previous_offset) {
-            offset_left_x = 0;
-        } else {
-            // TODO(): We want to recanolize the origin.
-            previous_offset = offset_left_x;
-            rel_translation_x = abs_translation_x % small_carousel_item_width;
-            console.log(`rel_translation_x:${rel_translation_x}`);
-        }
-        console.log(`abs_translation_x:${abs_translation_x}`);
+        // console.log(`abs_translation_x:${abs_translation_x}`);
         for (let index = 0;
                  index < m3_carousel_items.length;
                ++index) {
@@ -139,15 +155,5 @@ m3_carousel.addEventListener("mousemove", (e) => {
             }
             
         }
-        for (let index = 0;
-            index < m3_carousel_items.length;
-          ++index) {
-                let current_item = m3_carousel_items[index];
-                let pos = Number(current_item.getAttribute("pos"));
-                pos += offset_left_x;
-                current_item.setAttribute("pos", pos.toString());
-                current_item.innerHTML = `${current_item.getAttribute("pos")}`;
-        }
     }
-    
 });
