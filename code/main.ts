@@ -5,7 +5,7 @@
 // TODO(): La vie est belle.
 
 let m3_carousel = document.getElementById("m3_carousel");
-let m3_carousel_items = document.getElementsByClassName("m3_carousel_item");
+let el_carousel_items = document.getElementsByClassName("m3_carousel_item");
 
 let m3_carousel_width = m3_carousel.clientWidth;
 
@@ -39,25 +39,25 @@ let total_items_per_view = 2 + numbers_of_items_to_display;
 // TODO(): We want to determine how many item to display in the caraousel container.
 
 if (numbers_of_items_to_display) {
-    console.assert(m3_carousel_items.length >= 1 + numbers_of_items_to_display, "Numbers of items to display greater than actual items in caraousel");
+    console.assert(el_carousel_items.length >= 1 + numbers_of_items_to_display, "Numbers of items to display greater than actual items in caraousel");
     for (let index = 0;
              index < numbers_of_items_to_display;
            ++index ) {
-        m3_carousel_items[index].style.width = `${m3_carousel_item_width}px`;
+        el_carousel_items[index].style.width = `${m3_carousel_item_width}px`;
     }
 
     for (let index = 1 + numbers_of_items_to_display + 1;
-             index < m3_carousel_items.length;
+             index < el_carousel_items.length;
            ++index) {
-        m3_carousel_items[index].style.display = "none";
+        el_carousel_items[index].style.display = "none";
     }
 }
 
-m3_carousel_items[total_items_per_view - 1].style.width = "56px";
-m3_carousel_items[total_items_per_view - 1].style.backgroundColor = "blue";
+el_carousel_items[total_items_per_view - 1].style.width = "56px";
+el_carousel_items[total_items_per_view - 1].style.backgroundColor = "blue";
 
-m3_carousel_items[total_items_per_view - 2].style.width = "120px";
-m3_carousel_items[total_items_per_view - 2].style.backgroundColor = "red";
+el_carousel_items[total_items_per_view - 2].style.width = "120px";
+el_carousel_items[total_items_per_view - 2].style.backgroundColor = "red";
 
 
 let is_down = false;
@@ -83,77 +83,117 @@ let first_item_can_move = false;
 
 let translate = 0;
 
-let first_item_abs_position_x = m3_carousel_items[0].getBoundingClientRect().left + 16;
+let first_item_abs_position_x = el_carousel_items[0].getBoundingClientRect().left + 16;
 
 let carousel_padding_left = 16;
 let absolute_origin_x = m3_carousel.getBoundingClientRect().left + carousel_padding_left;
 
-let first_item_position = m3_carousel_items[0];
+let first_item_position = el_carousel_items[0];
+let previous_item_position = first_item_position;
 let first_item_position_index = 0;
 
+class Carousel {
+    el: Element;
+    items: CarouselItem[];
+    origin_x: Number;
+}
+
+class CarouselItem {
+    el: Element;
+    pos: Number;
+    abs_x: Number;
+    rel_x: Number
+    scaling_x: Number;
+    original_width: Number;
+    actual_width: Number;
+    can_move: Boolean;
+
+    constructor(el : Element, pos : Number, abs_x : Number, rel_x: Number, scaling_x : Number, original_width : Number, actual_width : Number, can_move: Boolean) {
+        this.el = el;
+        this.pos = pos;
+        this.abs_x = abs_x;
+        this.rel_x = rel_x
+        this.scaling_x = scaling_x;
+        this.original_width = original_width;
+        this.actual_width = actual_width;
+        this.can_move = can_move;
+    }
+}
+
+let carousel_items = [];
+for (let index = 0; index < el_carousel_items.length; ++index) {
+    let item_width = el_carousel_items[index].clientWidth;
+    let abs_x = el_carousel_items[index].getBoundingClientRect().left;
+    let item;
+    if (index == 0) {
+        item = new CarouselItem(
+            el_carousel_items[index],
+            index,
+            abs_x,
+            0,
+            1,
+            item_width,
+            item_width,
+            false
+        );    
+    }
+    else {
+        item = new CarouselItem(
+            el_carousel_items[index],
+            index,
+            abs_x,
+            0,
+            1,
+            item_width,
+            item_width,
+            true
+        );  
+    }
+    
+    carousel_items.push(item);
+}
+
 m3_carousel.addEventListener("mousemove", (e) => {
-    // console.log(`e.movementX:${e.movementX}`);
     if (is_down) {
-        // Recanonize first carousel's item.
-        for (let index = 0;
-            index < m3_carousel_items.length;
-        ++index) {
-            let current_item = m3_carousel_items[index];
-                let current_item_abs_x = current_item.getBoundingClientRect().left;
-                if ((current_item_abs_x >= absolute_origin_x - 40) && (current_item_abs_x <= absolute_origin_x)) {
-                    first_item_position = current_item;
-                    first_item_position_index = index;
-                }
-        }
-
-        let position_index = first_item_position_index;
-        for (let index = 0;
-            index < m3_carousel_items.length;
-        ++index) {
-            let current_item = m3_carousel_items[index];
-            current_item.setAttribute("pos", `${1 - position_index}`);
-            current_item.innerHTML = `${1 - position_index}`;
-            console.log("position_index:" + position_index);
-            --position_index;
-        }
+        for (const item of carousel_items) {
+            item.el.style.transformOrigin = `bottom right`;
         
-        // TODO(): Since many viariables depends on e.movementX I strongly suspect we can simplify the code a lot.
-        abs_translation_x += e.movementX;
-        rel_translation_x += e.movementX;
-        scaling_px += e.movementX;
+            item.rel_x += e.movementX;
+            item.abs_x += e.movementX;
 
-        scaling_rel_x =  scaling_px / m3_carousel_item_width;
-        scaling_abs_x += scaling_rel_x;
+            let left_item_point : Number = item.abs_x;
+            let right_item_point : Number = item.abs_x + item.actual_width;
+            let left_first_position_point : Number = absolute_origin_x + 40;
+            let right_first_position_point : Number = absolute_origin_x + m3_carousel_item_width;
 
-        let remaining_px;
-        let scaling_to_small_item_px;
-        let scaling_to_small_item;
-        
-        if (Math.abs(scaling_px) >= (m3_carousel_item_width - small_carousel_item_width)) {   
-            // TODO(): Make transition from remaining the remaining_px after swap smooth.
-            scaling_to_small_item = 40 / m3_carousel_item_width;
-            first_item_can_move = true;
-        }
-        // console.log(`abs_translation_x:${abs_translation_x}`);
-        for (let index = 0;
-                 index < m3_carousel_items.length;
-               ++index) {
-            let current_item = m3_carousel_items[index];
+            if ((right_item_point >= left_first_position_point) && (right_item_point <= right_first_position_point)) {
+                    
+                let d = right_first_position_point - left_first_position_point;
+                console.log(`d: ${d}`);
+                let m =  ((right_item_point - absolute_origin_x) - 40 )/ d;
+                console.log(`m: ${m}`);
+                let w = 40 + (m * d);
+                console.log(`w: ${w}`);
 
-            if (index == 0) {
-                current_item.style.transformOrigin = `bottom left`;
-                if (!first_item_can_move) {
-                    current_item.style.transform = `translate3d(${0}px, 0, 0) scale3d(${1 + scaling_rel_x}, 1, 1)`;
-                } else {
-                    // current_item.style.transformOrigin = `center`;
-                    // current_item.style.transform = `translate3d(${abs_translation_x}px, 0, 0)`;
-                    translate = abs_translation_x + (m3_carousel_item_width - small_carousel_item_width);
-                    current_item.style.transform = `translate3d(${translate}px, 0, 0) scale3d(${scaling_to_small_item}, 1, 1)`;
-                }
-            } else {
-                current_item.style.transform = `translate3d(${abs_translation_x}px, 0, 0)`;            
+                item.width = w;
+
+                item.scaling_x =  w / m3_carousel_item_width;
+                console.log(`item.scaling_x: ${item.scaling_x}`);
+                item.el.style.backgroundColor = "yellow";
+                
             }
-            
+            else if ((right_item_point < left_first_position_point)) {
+                item.width = 40;
+                item.scaling_x = item.width / m3_carousel_item_width;
+                item.el.style.backgroundColor = "blue";
+            }
+            else if ((right_item_point > left_first_position_point)) {
+                item.width = item.original_width;
+                item.scaling_x = 1;
+                item.el.style.backgroundColor = "red";
+            }
+
+            item.el.style.transform = `translate3d(${item.rel_x}px, 0, 0) scale3d(${item.scaling_x}, 1, 1)`;
         }
     }
 });
