@@ -20,6 +20,7 @@ function _define_property(obj, key, value) {
     }
     return obj;
 }
+var m3_carousel_item_content = document.getElementsByClassName("m3_carousel_item_content");
 var m3_carousel = document.getElementById("m3_carousel");
 var el_carousel_items = document.getElementsByClassName("m3_carousel_item");
 var m3_carousel_width = m3_carousel.clientWidth;
@@ -151,7 +152,8 @@ m3_carousel.addEventListener("mousemove", function(e) {
                     item.scaling_x = 1;
                     item.el.style.backgroundColor = "red";
                 }
-                item.el.style.transform = "translate3d(".concat(item.rel_x, "px, 0, 0) scale3d(").concat(item.scaling_x, ", 1, 1)");
+                item.el.style.transform = "translate3d(".concat(item.rel_x, "px, 0, 0)"); //scale3d(${item.scaling_x}, 1, 1)
+                item.el.style.clipPath = "inset(0 0 0 ".concat(m3_carousel_item_width - item.width, "px)");
             }
         } catch (err) {
             _didIteratorError = true;

@@ -4,6 +4,8 @@
 
 // TODO(): La vie est belle.
 
+let m3_carousel_item_content = document.getElementsByClassName("m3_carousel_item_content");
+
 let m3_carousel = document.getElementById("m3_carousel");
 let el_carousel_items = document.getElementsByClassName("m3_carousel_item");
 
@@ -193,7 +195,14 @@ m3_carousel.addEventListener("mousemove", (e) => {
                 item.el.style.backgroundColor = "red";
             }
 
-            item.el.style.transform = `translate3d(${item.rel_x}px, 0, 0) scale3d(${item.scaling_x}, 1, 1)`;
+            // EXPLORE(): I want to find a way to scale the image without triggering layout and paint.
+            // The problem with scaling is that it does stretch the element inside.
+            // Smething we might do is to undo the scaling inside with opposite value.
+            
+            // Right know I use clipath which trigger paint.
+
+            item.el.style.transform = `translate3d(${item.rel_x}px, 0, 0)`; //scale3d(${item.scaling_x}, 1, 1)
+            item.el.style.clipPath = `inset(0 0 0 ${m3_carousel_item_width - item.width}px)`;
         }
     }
 });
