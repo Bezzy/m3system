@@ -40,26 +40,38 @@ let total_items_per_view = 2 + numbers_of_items_to_display;
 
 // TODO(): We want to determine how many item to display in the caraousel container.
 
+let gap : Number = 8;
+
+let origin = 16;
+
 if (numbers_of_items_to_display) {
     console.assert(el_carousel_items.length >= 1 + numbers_of_items_to_display, "Numbers of items to display greater than actual items in caraousel");
     for (let index = 0;
-             index < numbers_of_items_to_display;
+             index < el_carousel_items.length;
            ++index ) {
         el_carousel_items[index].style.width = `${m3_carousel_item_width}px`;
-    }
+        let put_gap : Boolean = true;
 
-    for (let index = 1 + numbers_of_items_to_display + 1;
-             index < el_carousel_items.length;
-           ++index) {
-        el_carousel_items[index].style.display = "none";
+        if (!put_gap || index == 0) {
+            el_carousel_items[index].style.left = `${origin + (index * m3_carousel_item_width)}px`;
+            put_gap = true;
+        } else {
+            el_carousel_items[index].style.left = `${origin + (index * m3_carousel_item_width) + gap}px`;
+            put_gap = false;
+            gap += 8;
+        }
     }
 }
 
-el_carousel_items[total_items_per_view - 1].style.width = "56px";
-el_carousel_items[total_items_per_view - 1].style.backgroundColor = "blue";
+let rest_to_translate : Number = m3_carousel_item_width - 120;
+el_carousel_items[numbers_of_items_to_display].style.clipPath = `inset(0 0 0 ${m3_carousel_item_width - 120}px)`;
+el_carousel_items[numbers_of_items_to_display].style.transform = `translate3d(${-rest_to_translate}px, 0, 0)`;
 
-el_carousel_items[total_items_per_view - 2].style.width = "120px";
-el_carousel_items[total_items_per_view - 2].style.backgroundColor = "red";
+
+rest_to_translate += (m3_carousel_item_width - 56);
+el_carousel_items[numbers_of_items_to_display + 1].style.clipPath = `inset(0 0 0 ${m3_carousel_item_width - 56}px)`;
+el_carousel_items[numbers_of_items_to_display + 1].style.transform = `translate3d(${-rest_to_translate}px, 0, 0)`;
+
 
 
 let is_down = false;
@@ -154,6 +166,14 @@ for (let index = 0; index < el_carousel_items.length; ++index) {
     
     carousel_items.push(item);
 }
+
+
+
+carousel_items[total_items_per_view - 1].item_width = "56px";
+
+carousel_items[total_items_per_view - 2].item_width = "120px";
+
+
 
 m3_carousel.addEventListener("mousemove", (e) => {
     if (is_down) {

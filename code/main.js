@@ -44,19 +44,29 @@ m3_carousel_width -= total_gap;
 var m3_carousel_item_width = m3_carousel_width / numbers_of_items_to_display;
 var total_items_per_view = 2 + numbers_of_items_to_display;
 // TODO(): We want to determine how many item to display in the caraousel container.
+var gap = 8;
+var origin = 16;
 if (numbers_of_items_to_display) {
     console.assert(el_carousel_items.length >= 1 + numbers_of_items_to_display, "Numbers of items to display greater than actual items in caraousel");
-    for(var index = 0; index < numbers_of_items_to_display; ++index){
+    for(var index = 0; index < el_carousel_items.length; ++index){
         el_carousel_items[index].style.width = "".concat(m3_carousel_item_width, "px");
-    }
-    for(var index1 = 1 + numbers_of_items_to_display + 1; index1 < el_carousel_items.length; ++index1){
-        el_carousel_items[index1].style.display = "none";
+        var put_gap = true;
+        if (!put_gap || index == 0) {
+            el_carousel_items[index].style.left = "".concat(origin + index * m3_carousel_item_width, "px");
+            put_gap = true;
+        } else {
+            el_carousel_items[index].style.left = "".concat(origin + index * m3_carousel_item_width + gap, "px");
+            put_gap = false;
+            gap += 8;
+        }
     }
 }
-el_carousel_items[total_items_per_view - 1].style.width = "56px";
-el_carousel_items[total_items_per_view - 1].style.backgroundColor = "blue";
-el_carousel_items[total_items_per_view - 2].style.width = "120px";
-el_carousel_items[total_items_per_view - 2].style.backgroundColor = "red";
+var rest_to_translate = m3_carousel_item_width - 120;
+el_carousel_items[numbers_of_items_to_display].style.clipPath = "inset(0 0 0 ".concat(m3_carousel_item_width - 120, "px)");
+el_carousel_items[numbers_of_items_to_display].style.transform = "translate3d(".concat(-rest_to_translate, "px, 0, 0)");
+rest_to_translate += m3_carousel_item_width - 56;
+el_carousel_items[numbers_of_items_to_display + 1].style.clipPath = "inset(0 0 0 ".concat(m3_carousel_item_width - 56, "px)");
+el_carousel_items[numbers_of_items_to_display + 1].style.transform = "translate3d(".concat(-rest_to_translate, "px, 0, 0)");
 var is_down = false;
 m3_carousel.addEventListener("mousedown", function(e) {
     is_down = true;
@@ -108,17 +118,19 @@ var CarouselItem = function CarouselItem(el, pos, abs_x, rel_x, scaling_x, origi
     this.can_move = can_move;
 };
 var carousel_items = [];
-for(var index2 = 0; index2 < el_carousel_items.length; ++index2){
-    var item_width = el_carousel_items[index2].clientWidth;
-    var abs_x = el_carousel_items[index2].getBoundingClientRect().left;
+for(var index1 = 0; index1 < el_carousel_items.length; ++index1){
+    var item_width = el_carousel_items[index1].clientWidth;
+    var abs_x = el_carousel_items[index1].getBoundingClientRect().left;
     var item = void 0;
-    if (index2 == 0) {
-        item = new CarouselItem(el_carousel_items[index2], index2, abs_x, 0, 1, item_width, item_width, false);
+    if (index1 == 0) {
+        item = new CarouselItem(el_carousel_items[index1], index1, abs_x, 0, 1, item_width, item_width, false);
     } else {
-        item = new CarouselItem(el_carousel_items[index2], index2, abs_x, 0, 1, item_width, item_width, true);
+        item = new CarouselItem(el_carousel_items[index1], index1, abs_x, 0, 1, item_width, item_width, true);
     }
     carousel_items.push(item);
 }
+carousel_items[total_items_per_view - 1].item_width = "56px";
+carousel_items[total_items_per_view - 2].item_width = "120px";
 m3_carousel.addEventListener("mousemove", function(e) {
     if (is_down) {
         var _iteratorNormalCompletion = true, _didIteratorError = false, _iteratorError = undefined;
@@ -152,6 +164,10 @@ m3_carousel.addEventListener("mousemove", function(e) {
                     item.scaling_x = 1;
                     item.el.style.backgroundColor = "red";
                 }
+                // EXPLORE(): I want to find a way to scale the image without triggering layout and paint.
+                // The problem with scaling is that it does stretch the element inside.
+                // Smething we might do is to undo the scaling inside with opposite value.
+                // Right know I use clipath which trigger paint.
                 item.el.style.transform = "translate3d(".concat(item.rel_x, "px, 0, 0)"); //scale3d(${item.scaling_x}, 1, 1)
                 item.el.style.clipPath = "inset(0 0 0 ".concat(m3_carousel_item_width - item.width, "px)");
             }
